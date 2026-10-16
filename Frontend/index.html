@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Voting Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .glass {
+            background: rgba(17, 24, 39, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <header class="glass sticky top-0 z-50 border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div
+                    class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center font-bold text-xl shadow-lg shadow-indigo-500/30">
+                    V</div>
+                <span
+                    class="text-xl font-bold bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">VoteFlow
+                    2026</span>
+            </div>
+            <div id="backendStatus"
+                class="flex items-center space-x-2 text-xs font-medium px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                <span>Connecting to Backend...</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- Navigation Tabs -->
+        <div class="flex space-x-2 overflow-x-auto pb-4 mb-8 border-b border-slate-800">
+            <button onclick="switchTab('elections')" id="btn-elections"
+                class="tab-btn px-5 py-2.5 rounded-xl font-semibold text-sm transition-all bg-indigo-600 text-white shadow-lg shadow-indigo-600/30">Elections</button>
+            <button onclick="switchTab('candidates')" id="btn-candidates"
+                class="tab-btn px-5 py-2.5 rounded-xl font-semibold text-sm transition-all text-slate-400 hover:text-white hover:bg-slate-900">Candidates</button>
+            <button onclick="switchTab('vote')" id="btn-vote"
+                class="tab-btn px-5 py-2.5 rounded-xl font-semibold text-sm transition-all text-slate-400 hover:text-white hover:bg-slate-900">Cast
+                Vote</button>
+            <button onclick="switchTab('results')" id="btn-results"
+                class="tab-btn px-5 py-2.5 rounded-xl font-semibold text-sm transition-all text-slate-400 hover:text-white hover:bg-slate-900">Live
+                Results</button>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="hidden mb-6 p-4 rounded-xl text-sm font-medium border transition-all"></div>
+
+        <!-- TAB 1: ELECTIONS -->
+        <div id="tab-elections" class="tab-content space-y-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Create Election Form -->
+                <div class="glass p-6 rounded-2xl h-fit space-y-4">
+                    <h2 class="text-lg font-bold text-indigo-400">Create New Election</h2>
+                    <form id="electionForm" onsubmit="handleCreateElection(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Title</label>
+                            <input type="text" id="electionTitle" required
+                                class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500"
+                                placeholder="e.g. College Union Presidential Election 2026">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Description</label>
+                            <textarea id="electionDesc" rows="2"
+                                class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500"
+                                placeholder="Vote for your Union President"></textarea>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Start
+                                    Date</label>
+                                <input type="datetime-local" id="electionStart" required
+                                    class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">End
+                                    Date</label>
+                                <input type="datetime-local" id="electionEnd" required
+                                    class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Status</label>
+                            <select id="electionStatus"
+                                class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500">
+                                <option value="UPCOMING">UPCOMING</option>
+                                <option value="ACTIVE">ACTIVE</option>
+                                <option value="CLOSED">CLOSED</option>
+                            </select>
+                        </div>
+                        <button type="submit"
+                            class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition-all text-sm">Save
+                            to Database</button>
+                    </form>
+                </div>
+
+                <!-- Elections List -->
+                <div class="lg:col-span-2 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-lg font-bold">Active Elections</h2>
+                        <button onclick="loadElections()"
+                            class="text-xs bg-slate-900 hover:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-800 transition-all">Refresh
+                            List</button>
+                    </div>
+                    <div id="electionsList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <p class="text-slate-500 text-sm">Loading elections from backend...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: CANDIDATES -->
+        <div id="tab-candidates" class="tab-content hidden space-y-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Register Candidate Form -->
+                <div class="glass p-6 rounded-2xl h-fit space-y-4">
+                    <h2 class="text-lg font-bold text-indigo-400">Register Candidate</h2>
+                    <form id="candidateForm" onsubmit="handleCreateCandidate(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Select
+                                Election</label>
+                            <select id="candidateElectionId" required
+                                class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500">
+                                <option value="">-- Choose Election --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Candidate
+                                Name</label>
+                            <input type="text" id="candidateName" required
+                                class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500"
+                                placeholder="e.g. Candidate A">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Party /
+                                Alliance</label>
+                            <input type="text" id="candidateParty" required
+                                class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500"
+                                placeholder="e.g. Innovation Alliance">
+                        </div>
+                        <button type="submit"
+                            class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition-all text-sm">Add
+                            Candidate</button>
+                    </form>
+                </div>
+
+                <!-- Candidates List -->
+                <div class="lg:col-span-2 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-lg font-bold">Registered Candidates</h2>
+                        <button onclick="loadCandidatesList()"
+                            class="text-xs bg-slate-900 hover:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-800 transition-all">Refresh
+                            List</button>
+                    </div>
+                    <div id="candidatesList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <p class="text-slate-500 text-sm">Loading candidates list...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: CAST VOTE -->
+        <div id="tab-vote" class="tab-content hidden max-w-xl mx-auto">
+            <div class="glass p-8 rounded-2xl space-y-6">
+                <div class="text-center space-y-1">
+                    <h2
+                        class="text-xl font-bold bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
+                        Secure Vote Portal</h2>
+                    <p class="text-xs text-slate-400">Cast your official vote securely directly into the PostgreSQL
+                        database.</p>
+                </div>
+                <form id="voteForm" onsubmit="handleCastVote(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Voter ID</label>
+                        <input type="number" id="voteVoterId" required
+                            class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500"
+                            placeholder="Enter your Voter ID (e.g. 1)">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Election</label>
+                        <select id="voteElectionId" onchange="loadCandidatesForVoting(this.value)" required
+                            class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500">
+                            <option value="">-- Select Election --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Candidate</label>
+                        <select id="voteCandidateId" required
+                            class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500">
+                            <option value="">-- Select Candidate --</option>
+                        </select>
+                    </div>
+                    <button type="submit"
+                        class="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition-all text-sm tracking-wide">Cast
+                        Secure Vote</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- TAB 4: RESULTS -->
+        <div id="tab-results" class="tab-content hidden space-y-6 max-w-2xl mx-auto">
+            <div class="glass p-6 rounded-2xl space-y-4">
+                <h2 class="text-lg font-bold">Check Election Results</h2>
+                <div class="flex gap-3">
+                    <select id="resultsElectionSelect"
+                        class="flex-grow bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500">
+                        <option value="">-- Select Election --</option>
+                    </select>
+                    <button onclick="fetchResults()"
+                        class="px-6 bg-indigo-600 hover:bg-indigo-500 font-bold rounded-xl text-sm transition-all shadow-lg shadow-indigo-600/30">View</button>
+                </div>
+            </div>
+            <div id="resultsContainer" class="space-y-4"></div>
+        </div>
+
+    </main>
+
+    <!-- JavaScript Controller -->
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+
+        // Check Backend Health
+        async function checkBackend() {
+            const badge = document.getElementById('backendStatus');
+            try {
+                const res = await fetch(`${API_BASE}/elections`);
+                if (res.ok) {
+                    badge.className = "flex items-center space-x-2 text-xs font-medium px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+                    badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span>Backend Online (DB Connected)</span>';
+                    loadElections();
+                } else {
+                    throw new Error();
+                }
+            } catch (e) {
+                badge.className = "flex items-center space-x-2 text-xs font-medium px-3 py-1.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20";
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-400"></span><span>Backend Offline / Start Spring Boot</span>';
+            }
+        }
+
+        function showToast(msg, isError = false) {
+            const t = document.getElementById('toast');
+            t.className = `mb-6 p-4 rounded-xl text-sm font-medium border ${isError ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'}`;
+            t.innerText = msg;
+            t.classList.remove('hidden');
+            setTimeout(() => t.classList.add('hidden'), 4000);
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.className = "tab-btn px-5 py-2.5 rounded-xl font-semibold text-sm transition-all text-slate-400 hover:text-white hover:bg-slate-900";
+            });
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`btn-${tabId}`);
+            activeBtn.className = "tab-btn px-5 py-2.5 rounded-xl font-semibold text-sm transition-all bg-indigo-600 text-white shadow-lg shadow-indigo-600/30";
+
+            if (tabId === 'candidates') {
+                populateElectionDropdowns();
+                loadCandidatesList();
+            } else if (tabId === 'vote' || tabId === 'results') {
+                populateElectionDropdowns();
+            }
+        }
+
+        // 1. ELECTIONS
+        async function handleCreateElection(e) {
+            e.preventDefault();
+            const payload = {
+                title: document.getElementById('electionTitle').value,
+                description: document.getElementById('electionDesc').value,
+                startDate: document.getElementById('electionStart').value,
+                endDate: document.getElementById('electionEnd').value,
+                status: document.getElementById('electionStatus').value
+            };
+            try {
+                const res = await fetch(`${API_BASE}/elections`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    showToast('Election created and saved to database successfully!');
+                    document.getElementById('electionForm').reset();
+                    loadElections();
+                } else {
+                    throw new Error('Failed to create election');
+                }
+            } catch (err) {
+                showToast(err.message, true);
+            }
+        }
+
+        async function loadElections() {
+            try {
+                const res = await fetch(`${API_BASE}/elections`);
+                const data = await res.json();
+                const container = document.getElementById('electionsList');
+                if (!data || data.length === 0) {
+                    container.innerHTML = `<p class="text-slate-500 text-sm col-span-2">No elections found in database.</p>`;
+                    return;
+                }
+                container.innerHTML = data.map(el => `
+                    <div class="glass p-5 rounded-2xl border border-slate-800 space-y-2">
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-bold text-slate-200 text-base">${el.title}</h3>
+                            <span class="text-xs px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">${el.status}</span>
+                        </div>
+                        <p class="text-xs text-slate-400">${el.description || 'No description'}</p>
+                        <div class="pt-2 text-[11px] text-slate-500 flex justify-between">
+                            <span>ID: #${el.id}</span>
+                            <span>Starts: ${el.startDate ? el.startDate.replace('T', ' ') : 'N/A'}</span>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function populateElectionDropdowns() {
+            try {
+                const res = await fetch(`${API_BASE}/elections`);
+                const data = await res.json();
+                const options = `<option value="">-- Choose Election --</option>` + data.map(el => `<option value="${el.id}">${el.title} (ID: ${el.id})</option>`).join('');
+                document.getElementById('candidateElectionId').innerHTML = options;
+                document.getElementById('voteElectionId').innerHTML = options;
+                document.getElementById('resultsElectionSelect').innerHTML = options;
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // 2. CANDIDATES
+        async function handleCreateCandidate(e) {
+            e.preventDefault();
+            const payload = {
+                name: document.getElementById('candidateName').value,
+                party: document.getElementById('candidateParty').value,
+                electionId: parseInt(document.getElementById('candidateElectionId').value)
+            };
+            try {
+                const res = await fetch(`${API_BASE}/candidates`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    showToast('Candidate registered and linked successfully!');
+                    document.getElementById('candidateForm').reset();
+                    loadCandidatesList();
+                } else {
+                    const errText = await res.text();
+                    throw new Error(errText || 'Failed to register candidate');
+                }
+            } catch (err) {
+                showToast(err.message, true);
+            }
+        }
+
+        async function loadCandidatesList() {
+            try {
+                let res = await fetch(`${API_BASE}/candidates`);
+                if (!res.ok) {
+                    res = await fetch(`${API_BASE}/candidates/all`);
+                }
+                const data = await res.json();
+                const container = document.getElementById('candidatesList');
+                if (!data || data.length === 0) {
+                    container.innerHTML = `<p class="text-slate-500 text-sm col-span-2">No candidates found.</p>`;
+                    return;
+                }
+                container.innerHTML = data.map(c => `
+                    <div class="glass p-5 rounded-2xl border border-slate-800 space-y-2">
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-bold text-slate-200 text-base">${c.name}</h3>
+                            <span class="text-xs px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">${c.party}</span>
+                        </div>
+                        <div class="pt-2 text-[11px] text-slate-500 flex justify-between">
+                            <span>Candidate ID: #${c.id}</span>
+                            <span>Election ID: #${c.election ? c.election.id : (c.electionId || 'N/A')}</span>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // 3. VOTING - FOOLPROOF CANDIDATE LOADING
+        async function loadCandidatesForVoting(electionId) {
+            const candSelect = document.getElementById('voteCandidateId');
+            if (!electionId) {
+                candSelect.innerHTML = `<option value="">-- Select Candidate --</option>`;
+                return;
+            }
+            candSelect.innerHTML = `<option value="">Loading candidates...</option>`;
+
+            try {
+                let data = [];
+                // Primary endpoint fetch
+                try {
+                    const res = await fetch(`${API_BASE}/candidates`);
+                    if (res.ok) data = await res.json();
+                } catch (err) {
+                    console.log("Global candidate fetch failed, trying nested...");
+                }
+
+                // Nested endpoint fallback
+                if (!data || data.length === 0) {
+                    try {
+                        const res = await fetch(`${API_BASE}/elections/${electionId}/candidates`);
+                        if (res.ok) data = await res.json();
+                    } catch (err) {
+                        console.log("Nested candidates fetch failed");
+                    }
+                }
+
+                // Filter candidates matching the selected electionId
+                const filtered = Array.isArray(data) ? data.filter(c => {
+                    if (c.election && c.election.id) return c.election.id == electionId;
+                    if (c.electionId) return c.electionId == electionId;
+                    return true;
+                }) : [];
+
+                if (filtered.length === 0) {
+                    candSelect.innerHTML = `<option value="">-- No Candidates Found for Election ID ${electionId} --</option>`;
+                } else {
+                    candSelect.innerHTML = `<option value="">-- Select Candidate --</option>` +
+                        filtered.map(c => `<option value="${c.id}">${c.name} (${c.party || 'No Party'})</option>`).join('');
+                }
+            } catch (e) {
+                console.error("Error loading candidates:", e);
+                candSelect.innerHTML = `<option value="">-- Error Loading Candidates --</option>`;
+            }
+        }
+
+        async function handleCastVote(e) {
+            e.preventDefault();
+            const voterId = document.getElementById('voteVoterId').value;
+            const electionId = document.getElementById('voteElectionId').value;
+            const candidateId = document.getElementById('voteCandidateId').value;
+
+            if (!candidateId || candidateId === "") {
+                showToast('Please select a valid candidate', true);
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/votes/cast?voterId=${voterId}&electionId=${electionId}&candidateId=${candidateId}`, {
+                    method: 'POST'
+                });
+                if (res.ok) {
+                    showToast('Vote successfully cast and recorded in database!');
+                    document.getElementById('voteForm').reset();
+                    document.getElementById('voteCandidateId').innerHTML = `<option value="">-- Select Candidate --</option>`;
+                } else {
+                    const errText = await res.text();
+                    throw new Error(errText || 'Voting failed');
+                }
+            } catch (err) {
+                showToast(err.message, true);
+            }
+        }
+
+        // 4. RESULTS
+        async function fetchResults() {
+            const electionId = document.getElementById('resultsElectionSelect').value;
+            const container = document.getElementById('resultsContainer');
+            if (!electionId) {
+                showToast('Please select an election first', true);
+                return;
+            }
+            try {
+                const res = await fetch(`${API_BASE}/results/${electionId}`);
+                const data = await res.json();
+                if (!data || data.length === 0) {
+                    container.innerHTML = `<div class="glass p-5 rounded-2xl text-center text-slate-400 text-sm">No votes recorded yet for this election.</div>`;
+                    return;
+                }
+                container.innerHTML = data.map(r => `
+                    <div class="glass p-5 rounded-2xl border border-slate-800 flex justify-between items-center">
+                        <div>
+                            <h4 class="font-bold text-base text-slate-200">${r.candidateName || r.name || 'Candidate'}</h4>
+                            <span class="text-xs text-indigo-400">${r.party || ''}</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-2xl font-black text-cyan-400">${r.voteCount !== undefined ? r.voteCount : (r.votes || 0)}</span>
+                            <p class="text-[10px] uppercase tracking-wider text-slate-500">Votes</p>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                container.innerHTML = `<div class="glass p-5 rounded-2xl text-center text-rose-400 text-sm">Failed to load results.</div>`;
+            }
+        }
+
+        window.onload = checkBackend;
+    </script>
+</body>
+
+</html>
